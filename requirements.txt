@@ -1,0 +1,7 @@
+python-dotenv
+aiohttp
+apscheduler
+sanic
+sanic-ext
+asyncpg
+hypercorn
