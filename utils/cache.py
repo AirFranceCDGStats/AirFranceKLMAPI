@@ -5,6 +5,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler as Scheduler
 from json import dumps, loads
 from asyncio import sleep
 from asyncpg import Pool
+from datetime import datetime
 
 
 class Cache(Scheduler):
@@ -357,4 +358,34 @@ class Cache(Scheduler):
         self.nextFlights = cleanFlights
 
 
+        if 0 <= datetime.now().hour < 1:
+            await self.saveStats()
+
+
         self.logs.info("[CACHE] Données sauvegardées !")
+
+
+    async def saveStats(self):
+        """
+        Sauvegarde des statistiques
+        """
+        self.logs.info("[CACHE] Sauvegarde des statistiques...")
+
+
+        async with self.pool.acquire() as connection:
+            nbvols = await connection.fetchval("SELECT COUNT(*) FROM vol")
+            nbetapes = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol")
+            nbavions = await connection.fetchval("SELECT COUNT(*) FROM avion")
+            nbaeroports = await connection.fetchval("SELECT COUNT(*) FROM aeroport")
+            nbetape_on_time = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol WHERE STATUS = 'ON_TIME'")
+            nbetape_delayed_departure = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol WHERE STATUS = 'DELAYED_DEPARTURE'")
+            nbetape_delayed_arrival = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol WHERE STATUS = 'DELAYED_ARRIVAL'")
+            nbetape_delayed = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol WHERE STATUS = 'DELAYED'")
+            nbetape_cancelled = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol WHERE STATUS = 'CANCELLED'")
+            gaz = 0.0
+
+            self.logs.debug(f"[DB] [STATS] INSERT INTO historique VALUES ({getDate(), nbvols, nbetapes, nbavions, nbaeroports, nbetape_on_time, nbetape_delayed_departure, nbetape_delayed_arrival, nbetape_delayed, nbetape_cancelled, gaz})")
+            await connection.execute("INSERT INTO historique VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)", getDate(), nbvols, nbetapes, nbavions, nbaeroports, nbetape_on_time, nbetape_delayed_departure, nbetape_delayed_arrival, nbetape_delayed, nbetape_cancelled, gaz)
+
+
+        self.logs.info("[CACHE] Statistiques sauvegardées !")
