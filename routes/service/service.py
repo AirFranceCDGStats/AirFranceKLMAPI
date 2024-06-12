@@ -83,17 +83,15 @@ async def stats(request: Request, ws: Websocket):
     """
     while True:
         await ws.send(
-            json(
-                {
-                    "success": True,
-                    "code": 200,
-                    "info": {
-                        "airports": len(request.app.ctx.cache.airportsCodes),
-                        "flights": len(request.app.ctx.cache.flightsCodes),
-                        "companies": len(request.app.ctx.cache.companies),
-                    },
-                    "message": "L'API est en ligne."
-                }
-            )
+            {
+                "success": True,
+                "code": 200,
+                "info": {
+                    "airports": len(request.app.ctx.cache.airportsCodes),
+                    "flights": len(request.app.ctx.cache.flightsCodes),
+                    "companies": len(request.app.ctx.cache.companies),
+                },
+                "message": "L'API est en ligne."
+            }
         )
         await sleep(5)
