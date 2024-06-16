@@ -1,11 +1,14 @@
 from AirFranceKLMAPI.client import AFKLMClient
 from sanic import Sanic
+from sanic_ext import openapi
+from config import AppConfig
 from routes.service.service import bp as RouteService
 from routes.aeroports.aeroports import bp as RouteAeroports
 from routes.vols.vols import bp as RouteVols
 from routes.planes.planes import bp as RoutePlanes
 from routes.compagnies.compagnies import bp as RouteCompagnies
 from routes.public.public import bp as RoutePublic
+from routes.websocket.websocket import bp as RouteWebsocket
 from utils.logger import Logger
 from utils.cache import Cache
 from dotenv import load_dotenv
@@ -21,24 +24,20 @@ load_dotenv(dotenv_path=f".env")
 
 
 app = Sanic(
-    name="AirFranceKLMAPI"
+    name="AirFranceKLMAPI",
+    config=AppConfig(),
 )
 
-app.config.API_HOST = f"{environ.get('API_HOST', '0.0.0.0')}:{environ.get('API_PORT', 5000)}"
-#app.config.API_HOST = "airfrance.bayfield.dev"
-app.config.API_BASEPATH = ""
-app.config.API_SCHEMES = ["https"]
-app.config.API_VERSION = "1.0.0"
-app.config.API_TERMS_OF_SERVICE = "https://airfrance.bayfield.dev/terms"
-app.config.API_CONTACT_EMAIL = "airfrance@bayfield.dev"
-
-app.config.OAS = True
-app.config.OAS_UI_REDOC = True
-app.config.OAS_PATH_TO_REDOC_HTML = "scalar.html"
-app.config.OAS_UI_SWAGGER = False
-app.config.OAS_UI_DEFAULT = "redoc"
-app.config.OAS_URI_TO_JSON = "/openapi.json"
-app.config.OAS_URL_PREFIX = "/docs"
+app.ext.openapi.raw(
+    {
+        "servers": [
+            {
+                "url": f"{environ.get('API_DOMAIN')}",
+                "description": "Serveur de production"
+            }
+        ],
+    }
+)
 
 app.ext.openapi.describe(
     title=app.name,
@@ -76,11 +75,12 @@ app.blueprint(RouteVols)
 app.blueprint(RouteCompagnies)
 app.blueprint(RoutePlanes)
 app.blueprint(RoutePublic)
+app.blueprint(RouteWebsocket)
+openapi.exclude(bp=RouteWebsocket)
 
 
 @app.listener("before_server_start")
 async def setup_app(app: Sanic, loop):
-    app.ctx.launch_time = int(datetime.utcnow().timestamp())
     app.ctx.logs = Logger("logs")
     app.ctx.requests = Logger("requests")
     app.ctx.session = ClientSession()

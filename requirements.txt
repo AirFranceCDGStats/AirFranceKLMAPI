@@ -2,6 +2,6 @@ python-dotenv
 aiohttp
 apscheduler
 sanic
-sanic-ext
+git+https://github.com/PaulBayfield/sanic-ext
 asyncpg
 hypercorn
