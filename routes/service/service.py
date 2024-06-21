@@ -89,7 +89,7 @@ async def getHistorique(request: Request) -> JSONResponse:
     for row in historique:
         data.append(
             {
-                "date": row["date"],
+                "date": row["date"].strftime("%d/%m/%Y %H:%M:%S"),
                 "airports": row["nbaeroports"],
                 "flights": row["nbvols"],
                 "companies": row["nbavions"],
