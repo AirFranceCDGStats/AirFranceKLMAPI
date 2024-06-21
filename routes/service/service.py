@@ -1,9 +1,8 @@
 from models.status import StatusResponse
 from models.responses import RateLimitedResponse
 from sanic.response import JSONResponse, json
-from sanic import Blueprint, Request, Websocket
+from sanic import Blueprint, Request
 from sanic_ext import openapi
-from asyncio import sleep
 
 
 bp = Blueprint(

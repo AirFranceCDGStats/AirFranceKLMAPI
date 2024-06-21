@@ -385,7 +385,23 @@ class Cache(Scheduler):
             gaz = 0.0
 
             self.logs.debug(f"[DB] [STATS] INSERT INTO historique VALUES ({datetime.now(), nbvols, nbetapes, nbavions, nbaeroports, nbetape_on_time, nbetape_delayed_departure, nbetape_delayed_arrival, nbetape_delayed, nbetape_cancelled, gaz})")
-            await connection.execute("INSERT INTO historique VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)", datetime.now(), nbvols, nbetapes, nbavions, nbaeroports, nbetape_on_time, nbetape_delayed_departure, nbetape_delayed_arrival, nbetape_delayed, nbetape_cancelled, gaz)
+            await connection.execute(
+                """
+                    INSERT INTO historique VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                    ON CONFLICT (date) DO NOTHING
+                """, 
+                datetime.now(), 
+                nbvols, 
+                nbetapes, 
+                nbavions, 
+                nbaeroports, 
+                nbetape_on_time, 
+                nbetape_delayed_departure, 
+                nbetape_delayed_arrival, 
+                nbetape_delayed, 
+                nbetape_cancelled, 
+                gaz
+            )
 
 
         self.logs.info("[CACHE] Statistiques sauvegardées !")
