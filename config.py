@@ -17,3 +17,4 @@ class AppConfig(Config):
 
     CORS_ORIGINS = "*"
     CORS_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    CORS_HEADERS = ["Content-Type", "Authorization"]

@@ -13,7 +13,6 @@ from utils.logger import Logger
 from utils.cache import Cache
 from dotenv import load_dotenv
 from os import environ
-from datetime import datetime
 from aiohttp import ClientSession
 from apscheduler.triggers.interval import IntervalTrigger
 from textwrap import dedent
