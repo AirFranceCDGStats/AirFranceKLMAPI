@@ -199,8 +199,8 @@ class Cache(Scheduler):
                     for i in range(1, page.get("totalPages", 1)):
                         await sleep(1)
                         moreFlights, _ = await client.flights.get(
-                            startRange=start,
-                            endRange=end,
+                            startRange=start.strftime("%Y-%m-%dT00:00:00Z"),
+                            endRange=end.strftime("%Y-%m-%dT00:00:00Z"),
                             timeType="U",
                             departureCity="PAR",
                             carrierCode="AF",
