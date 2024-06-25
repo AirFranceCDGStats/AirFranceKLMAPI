@@ -122,7 +122,7 @@ class Cache(Scheduler):
         flights = []
 
         client = self.clients[self.currentClient]
-        self.currentClient = ((self.currentClient + 1) % len(self.clients)) + 1
+        self.currentClient = (self.currentClient + 1) % len(self.clients)
 
         self.logs.debug(f"[CACHE] Utilisation du client n°{self.currentClient} ({client.key}...)")
 
@@ -174,9 +174,10 @@ class Cache(Scheduler):
         flights = []
 
         client = self.clients[self.currentClient]
-        self.currentClient = ((self.currentClient + 1) % len(self.clients)) + 1
 
         self.logs.debug(f"[CACHE] Utilisation du client n°{self.currentClient} ({client.key}...)")
+
+        await sleep(10)
 
         try:
             async with self.pool.acquire() as connection:
