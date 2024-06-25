@@ -2,10 +2,10 @@ from AirFranceKLMAPI import AFKLMClient, NotFoundError
 from utils.date import getDateRange, getDate
 from utils.logger import Logger
 from apscheduler.schedulers.asyncio import AsyncIOScheduler as Scheduler
-from json import dumps, loads
+from json import dumps
 from asyncio import sleep
 from asyncpg import Pool
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class Cache(Scheduler):
@@ -122,7 +122,7 @@ class Cache(Scheduler):
         flights = []
 
         client = self.clients[self.currentClient]
-        self.currentClient = (self.currentClient + 1) % len(self.clients)
+        self.currentClient = ((self.currentClient + 1) % len(self.clients)) + 1
 
         self.logs.debug(f"[CACHE] Utilisation du client n°{self.currentClient} ({client.key}...)")
 
@@ -163,6 +163,62 @@ class Cache(Scheduler):
         await self.save(flights)
 
         self.logs.info("[CACHE] Nouveaux vols chargés !")
+
+
+    async def historicalFlights(self) -> None:
+        """
+        Chargement des anciens vols
+        """
+        self.logs.info("[CACHE] En cours de chargement des anciens vols...")
+
+        flights = []
+
+        client = self.clients[self.currentClient]
+        self.currentClient = ((self.currentClient + 1) % len(self.clients)) + 1
+
+        self.logs.debug(f"[CACHE] Utilisation du client n°{self.currentClient} ({client.key}...)")
+
+        try:
+            async with self.pool.acquire() as connection:
+                date = await connection.fetchval("SELECT date FROM historique ORDER BY date DESC LIMIT 1")
+
+            end = date  
+            for _ in range(1, 8):
+                start = date - timedelta(hours=24)
+
+                flights, page = await client.flights.get(
+                    startRange=start,
+                    endRange=end,
+                    timeType="U",
+                    departureCity="PAR",
+                    carrierCode="AF",
+                )
+
+                if page.get("totalPages", 1) > 1:
+                    for i in range(1, page.get("totalPages", 1)):
+                        await sleep(1)
+                        moreFlights, _ = await client.flights.get(
+                            startRange=start,
+                            endRange=end,
+                            timeType="U",
+                            departureCity="PAR",
+                            carrierCode="AF",
+                            page=i,
+                        )
+
+                        flights.extend(moreFlights)
+
+                self.logs.debug(f"[CACHE] {len(flights)} vols chargés !")
+
+                await self.save(flights)
+        except NotFoundError:
+            self.logs.error("Impossible de charger le cache : Aucun vol trouvé")
+            pass
+        except Exception as e:
+            self.logs.error(f"Impossible de charger le cache : {e}")
+            pass
+
+        self.logs.info("[CACHE] Anciens vols chargés !")
 
 
     async def save(self, flights: list) -> None:

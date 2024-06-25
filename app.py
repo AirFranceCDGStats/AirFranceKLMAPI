@@ -122,6 +122,9 @@ async def setup_app(app: Sanic, loop):
 
     await app.ctx.cache.refreshFlights()
 
+    if environ.get("HISTORICAL", "false").lower() == "true":
+        await app.ctx.cache.historicalFlights()
+
 
     app.ctx.logs.info("API démarrée")
 
