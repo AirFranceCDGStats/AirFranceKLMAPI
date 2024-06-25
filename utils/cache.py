@@ -288,18 +288,22 @@ class Cache(Scheduler):
                         arr_dateinitiale: str = flightLeg.get("arrivalInformation").get("times").get("scheduled")
                         arr_dernieredate: str = flightLeg.get("arrivalInformation").get("times").get("latestPublished")
 
+                        d_dpt_dateinitiale = getDate(dpt_dateinitiale)
+                        d_dpt_dernieredate = getDate(dpt_dernieredate)
                         d_arr_dateinitiale = getDate(arr_dateinitiale)
                         d_arr_dernieredate = getDate(arr_dernieredate)
 
                         status = "ON_TIME"
                         if dpt_dateinitiale != dpt_dernieredate or arr_dateinitiale != arr_dernieredate:
-                            if dpt_dateinitiale != dpt_dernieredate:
+                            if (d_arr_dateinitiale - d_arr_dernieredate).seconds > 120:
+                                status = "AHEAD"
+                            if (d_dpt_dernieredate - d_dpt_dateinitiale).seconds > 120:
                                 status = "DELAYED_DEPARTURE"
-                            if arr_dateinitiale != arr_dernieredate:
+                            if (d_arr_dernieredate - d_arr_dateinitiale).seconds > 120:
                                 status = "DELAYED_ARRIVAL"
-                            if abs(d_arr_dateinitiale - d_arr_dernieredate).seconds > 600:
+                            if (d_arr_dernieredate - d_arr_dateinitiale).seconds > 300:
                                 status = "DELAYED"
-                        if flightLeg.get("status") == "CANCELLED":
+                        if flightLeg.get("legStatusPublic") == "CANCELLED":
                             status = "CANCELLED"
 
                         self.logs.debug(f"[DB] [FLIGHTS] INSERT INTO etapeduvol VALUES ({flightLeg.get('status')}, {flightLeg.get('aircraft').get('registration')}, {flightLeg.get('departureInformation').get('airport').get('code')}, {flight.get('id')}, {flightLeg.get('arrivalInformation').get('airport').get('code')}, {getDate(flightLeg.get('departureInformation').get('times').get('scheduled'))}, {getDate(flightLeg.get('departureInformation').get('times').get('latestPublished'))}, {getDate(flightLeg.get('arrivalInformation').get('times').get('scheduled'))}, {getDate(flightLeg.get('arrivalInformation').get('times').get('latestPublished'))}, {flightLeg.get('status')}, {flightLeg.get('restricted')}, {flightLeg.get('serviceType')}, {flightLeg.get('legStatusPublic')})")
@@ -378,16 +382,18 @@ class Cache(Scheduler):
             nbavions = await connection.fetchval("SELECT COUNT(*) FROM avion")
             nbaeroports = await connection.fetchval("SELECT COUNT(*) FROM aeroport")
             nbetape_on_time = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol WHERE STATUS = 'ON_TIME'")
-            nbetape_delayed_departure = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol WHERE STATUS = 'DELAYED_DEPARTURE'")
+            nbetape_delayed_departure = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol WHERE STATUS LIKE 'DELAYED_DEPARTURE'")
             nbetape_delayed_arrival = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol WHERE STATUS = 'DELAYED_ARRIVAL'")
             nbetape_delayed = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol WHERE STATUS = 'DELAYED'")
             nbetape_cancelled = await connection.fetchval("SELECT COUNT(*) FROM etapeduvol WHERE STATUS = 'CANCELLED'")
+            average_delay_departure = await connection.fetchval("SELECT AVG(EXTRACT(EPOCH FROM TO_TIMESTAMP(DPT_DERNIEREDATE, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"+\"TZH:TZM') -TO_TIMESTAMP(DPT_DATEINITIALE, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"+\"TZH:TZM'))) FROM etapeduvol WHERE STATUS LIKE 'DELAYED_DEPARTURE'")
+            average_delay_arrival = await connection.fetchval("SELECT AVG(EXTRACT(EPOCH FROM TO_TIMESTAMP(ARR_DERNIEREDATE, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"+\"TZH:TZM') -TO_TIMESTAMP(ARR_DATEINITIALE, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"+\"TZH:TZM'))) FROM etapeduvol WHERE STATUS IN ('DELAYED_ARRIVAL', 'DELAYED')")
             gaz = 0.0
 
             self.logs.debug(f"[DB] [STATS] INSERT INTO historique VALUES ({datetime.now(), nbvols, nbetapes, nbavions, nbaeroports, nbetape_on_time, nbetape_delayed_departure, nbetape_delayed_arrival, nbetape_delayed, nbetape_cancelled, gaz})")
             await connection.execute(
                 """
-                    INSERT INTO historique VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                    INSERT INTO historique VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
                     ON CONFLICT (date) DO NOTHING
                 """, 
                 datetime.now(), 
@@ -400,6 +406,8 @@ class Cache(Scheduler):
                 nbetape_delayed_arrival, 
                 nbetape_delayed, 
                 nbetape_cancelled, 
+                round(average_delay_departure / 60, 2),
+                round(average_delay_arrival / 60, 2),
                 gaz
             )
 
