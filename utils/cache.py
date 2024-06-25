@@ -188,8 +188,8 @@ class Cache(Scheduler):
                 start = date - timedelta(hours=24)
 
                 flights, page = await client.flights.get(
-                    startRange=start,
-                    endRange=end,
+                    startRange=start.strftime("%Y-%m-%dT00:00:00Z"),
+                    endRange=end.strftime("%Y-%m-%dT00:00:00Z"),
                     timeType="U",
                     departureCity="PAR",
                     carrierCode="AF",
