@@ -1,4 +1,4 @@
-from AirPy import AFKLMClient, NotFoundError
+from AirPy import AirPyClient, NotFoundError
 from utils.date import getDateRange, getDate
 from utils.logger import Logger
 from apscheduler.schedulers.asyncio import AsyncIOScheduler as Scheduler
@@ -12,7 +12,7 @@ class Cache(Scheduler):
     """
     Classe de gestion du cache
     """
-    def __init__(self, clients: list[AFKLMClient], logs: Logger, pool: Pool) -> None:
+    def __init__(self, clients: list[AirPyClient], logs: Logger, pool: Pool) -> None:
         super().__init__()
         self.clients = clients
         self.logs = logs

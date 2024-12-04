@@ -1,4 +1,4 @@
-from AirPy.client import AFKLMClient
+from AirPy.client import AirPyClient
 from sanic import Sanic
 from sanic_ext import openapi
 from config import AppConfig
@@ -87,7 +87,7 @@ async def setup_app(app: Sanic, loop):
     app.ctx.clients = []
     for key in environ.keys():
         if key.startswith("AIRFRANCEKLM_API_KEY_"):
-            app.ctx.clients.append(AFKLMClient(environ.get(key), app.ctx.session))
+            app.ctx.clients.append(AirPyClient(environ.get(key), app.ctx.session))
             app.ctx.logs.info(f"[ENV] Client : {key} chargé !")
 
     app.ctx.logs.info(f"{len(app.ctx.clients)} Clients chargés !")
