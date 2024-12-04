@@ -80,7 +80,8 @@ openapi.exclude(bp=RouteWebsocket)
 
 @app.listener("before_server_start")
 async def setup_app(app: Sanic, loop):
-    app.ctx.requests = Logger("logs")
+    app.ctx.logs = Logger("logs")
+    app.ctx.requests = Logger("web")
     app.ctx.session = ClientSession()
 
     # Chargement des clients
