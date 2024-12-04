@@ -11,6 +11,7 @@ from .routes.public.public import bp as RoutePublic
 from .routes.websocket.websocket import bp as RouteWebsocket
 from .utils.logger import Logger
 from .utils.cache import Cache
+from .components.statsitics import PrometheusStatistics
 from dotenv import load_dotenv
 from os import environ
 from aiohttp import ClientSession
