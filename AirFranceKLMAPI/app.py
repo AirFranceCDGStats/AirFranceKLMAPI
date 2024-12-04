@@ -1,32 +1,40 @@
 from AirPy.client import AirPyClient
-from sanic import Sanic
+from sanic import Sanic, Request
 from sanic_ext import openapi
-from config import AppConfig
-from routes.service.service import bp as RouteService
-from routes.aeroports.aeroports import bp as RouteAeroports
-from routes.vols.vols import bp as RouteVols
-from routes.planes.planes import bp as RoutePlanes
-from routes.compagnies.compagnies import bp as RouteCompagnies
-from routes.public.public import bp as RoutePublic
-from routes.websocket.websocket import bp as RouteWebsocket
-from utils.logger import Logger
-from utils.cache import Cache
+from .config import AppConfig
+from .routes.service.service import bp as RouteService
+from .routes.aeroports.aeroports import bp as RouteAeroports
+from .routes.vols.vols import bp as RouteVols
+from .routes.planes.planes import bp as RoutePlanes
+from .routes.compagnies.compagnies import bp as RouteCompagnies
+from .routes.public.public import bp as RoutePublic
+from .routes.websocket.websocket import bp as RouteWebsocket
+from .utils.logger import Logger
+from .utils.cache import Cache
 from dotenv import load_dotenv
 from os import environ
 from aiohttp import ClientSession
 from apscheduler.triggers.interval import IntervalTrigger
 from textwrap import dedent
 from asyncpg import create_pool
+from datetime import datetime
 
 
 load_dotenv(dotenv_path=f".env")
 
 
+# Initialisation de l'application
 app = Sanic(
     name="AirFranceKLMAPI",
     config=AppConfig(),
 )
 
+
+# Ajoute les statistiques Prometheus
+PrometheusStatistics(app)
+
+
+# Ajoute des informations à la documentation OpenAPI
 app.ext.openapi.raw(
     {
         "servers": [
@@ -131,14 +139,23 @@ async def setup_app(app: Sanic, loop):
 
 @app.listener("after_server_stop")
 async def close_app(app: Sanic, loop):
+    await app.ctx.pool.close()
     await app.ctx.session.close()
 
     app.ctx.logs.info("API arrêtée")
 
 
+@app.on_request
+async def before_request(request: Request):
+    request.ctx.start = datetime.now().timestamp()
+
+
 @app.on_response
-async def after_request(request, response):
-    app.ctx.requests.info(f"[{request.method}] {request.url} - {response.status}")
+async def after_request(request: Request, response):
+    end = datetime.now().timestamp()
+    process = end - request.ctx.start
+
+    app.ctx.requests.info(f"{request.headers.get('CF-Connecting-IP', request.client_ip)} - [{request.method}] {request.url} - {response.status} ({process * 1000:.2f}ms)")
 
 
 if __name__ == "__main__":

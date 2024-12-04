@@ -1,4 +1,4 @@
-from sanic.response import JSONResponse, json
+from sanic.response import JSONResponse, redirect
 from sanic import Blueprint, Request
 from sanic_ext import openapi
 
@@ -12,4 +12,4 @@ bp = Blueprint(
 @bp.route("/")
 @openapi.exclude()
 async def index(request: Request) -> JSONResponse:
-    return json({"message": "Hello, World!"})
+    return redirect("/docs")

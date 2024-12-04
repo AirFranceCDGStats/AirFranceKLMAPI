@@ -1,5 +1,5 @@
-from models.status import StatusResponse, HistoriqueResponse
-from models.responses import RateLimitedResponse
+from ...models.status import StatusResponse, HistoriqueResponse
+from ...models.responses import RateLimitedResponse
 from sanic.response import JSONResponse, json
 from sanic import Blueprint, Request
 from sanic_ext import openapi

@@ -1,6 +1,6 @@
 from AirPy import AirPyClient, NotFoundError
-from utils.date import getDateRange, getDate
-from utils.logger import Logger
+from .date import getDateRange, getDate
+from .logger import Logger
 from apscheduler.schedulers.asyncio import AsyncIOScheduler as Scheduler
 from json import dumps
 from asyncio import sleep
