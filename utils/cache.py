@@ -1,4 +1,4 @@
-from AirFranceKLMAPI import AFKLMClient, NotFoundError
+from AirPy import AFKLMClient, NotFoundError
 from utils.date import getDateRange, getDate
 from utils.logger import Logger
 from apscheduler.schedulers.asyncio import AsyncIOScheduler as Scheduler

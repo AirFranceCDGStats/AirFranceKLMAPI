@@ -1,4 +1,4 @@
-from AirFranceKLMAPI.client import AFKLMClient
+from AirPy.client import AFKLMClient
 from sanic import Sanic
 from sanic_ext import openapi
 from config import AppConfig
@@ -80,15 +80,14 @@ openapi.exclude(bp=RouteWebsocket)
 
 @app.listener("before_server_start")
 async def setup_app(app: Sanic, loop):
-    app.ctx.logs = Logger("logs")
-    app.ctx.requests = Logger("requests")
+    app.ctx.requests = Logger("logs")
     app.ctx.session = ClientSession()
 
     # Chargement des clients
     app.ctx.clients = []
     for key in environ.keys():
         if key.startswith("AIRFRANCEKLM_API_KEY_"):
-            app.ctx.clients.append(AFKLMClient(environ.get(key), app.ctx.session, app.ctx.logs))
+            app.ctx.clients.append(AFKLMClient(environ.get(key), app.ctx.session))
             app.ctx.logs.info(f"[ENV] Client : {key} chargé !")
 
     app.ctx.logs.info(f"{len(app.ctx.clients)} Clients chargés !")
@@ -147,7 +146,7 @@ if __name__ == "__main__":
     """
     app.run(
         host="0.0.0.0",
-        port=5000,
+        port=10000,
         debug=True,
         auto_reload=True
     )

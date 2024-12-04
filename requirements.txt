@@ -3,5 +3,6 @@ aiohttp
 apscheduler
 sanic
 git+https://github.com/PaulBayfield/sanic-ext
+git+https://github.com/AirFranceCDGStats/AirPy
 asyncpg
 hypercorn
