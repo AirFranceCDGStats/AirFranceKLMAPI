@@ -32,7 +32,7 @@ class Logger:
         self.logger.addHandler(handler)
 
         self.logger.info("Logger initialisé")
-    
+
 
     def info(self, message: str) -> None:
         """

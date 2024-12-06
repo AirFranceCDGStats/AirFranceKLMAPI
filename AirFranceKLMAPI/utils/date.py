@@ -1,5 +1,7 @@
 import datetime
 
+from pytz import timezone
+
 
 def getDateRange():
     """
@@ -7,7 +9,7 @@ def getDateRange():
     
     :return: La plage de dates
     """
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(tz=timezone("Europe/Paris"))
 
     before = now - datetime.timedelta(minutes=30)
     after = now + datetime.timedelta(hours=1)

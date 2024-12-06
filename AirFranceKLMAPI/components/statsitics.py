@@ -6,6 +6,7 @@ from sanic_ext import openapi
 from datetime import datetime
 from os import environ
 from dotenv import load_dotenv
+from pytz import timezone
 
 
 load_dotenv(dotenv_path=f".env")
@@ -43,7 +44,7 @@ class PrometheusStatistics:
             """
             Middleware pour suivre les requêtes entrantes
             """
-            request.ctx.process_time = datetime.now().timestamp()
+            request.ctx.process_time = datetime.now(tz=timezone("Europe/Paris")).timestamp()
 
 
         @app.middleware("response")
@@ -61,7 +62,7 @@ class PrometheusStatistics:
                 method=request.method,
                 endpoint=request.path,
                 status=response.status
-            ).observe(datetime.now().timestamp() - request.ctx.process_time)
+            ).observe(datetime.now(tz=timezone("Europe/Paris")).timestamp() - request.ctx.process_time)
 
 
         @app.route("/metrics", methods=["GET"])

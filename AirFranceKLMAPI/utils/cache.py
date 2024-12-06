@@ -6,6 +6,7 @@ from json import dumps
 from asyncio import sleep
 from asyncpg import Pool
 from datetime import datetime, timedelta
+from pytz import timezone
 
 
 class Cache(Scheduler):
@@ -419,7 +420,7 @@ class Cache(Scheduler):
         self.nextFlights = cleanFlights
 
 
-        if 0 <= datetime.now().hour < 1:
+        if 0 <= datetime.now(tz=timezone("Europe/Paris")).hour < 1:
             await self.saveStats()
 
 
@@ -447,13 +448,13 @@ class Cache(Scheduler):
             average_delay_arrival = await connection.fetchval("SELECT AVG(EXTRACT(EPOCH FROM TO_TIMESTAMP(ARR_DERNIEREDATE, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"+\"TZH:TZM') -TO_TIMESTAMP(ARR_DATEINITIALE, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"+\"TZH:TZM'))) FROM etapeduvol WHERE STATUS IN ('DELAYED_ARRIVAL', 'DELAYED')")
             gaz = 0.0
 
-            self.logs.debug(f"[DB] [STATS] INSERT INTO historique VALUES ({datetime.now(), nbvols, nbetapes, nbavions, nbaeroports, nbetape_on_time, nbetape_delayed_departure, nbetape_delayed_arrival, nbetape_delayed, nbetape_cancelled, gaz})")
+            self.logs.debug(f"[DB] [STATS] INSERT INTO historique VALUES ({datetime.now(tz=timezone("Europe/Paris")), nbvols, nbetapes, nbavions, nbaeroports, nbetape_on_time, nbetape_delayed_departure, nbetape_delayed_arrival, nbetape_delayed, nbetape_cancelled, gaz})")
             await connection.execute(
                 """
                     INSERT INTO historique VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
                     ON CONFLICT (date) DO NOTHING
                 """, 
-                datetime.now(), 
+                datetime.now(tz=timezone("Europe/Paris")), 
                 nbvols, 
                 nbetapes, 
                 nbavions, 

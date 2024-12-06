@@ -19,6 +19,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from textwrap import dedent
 from asyncpg import create_pool
 from datetime import datetime
+from pytz import timezone
 
 
 load_dotenv(dotenv_path=f".env")
@@ -148,12 +149,12 @@ async def close_app(app: Sanic, loop):
 
 @app.on_request
 async def before_request(request: Request):
-    request.ctx.start = datetime.now().timestamp()
+    request.ctx.start = datetime.now(tz=timezone("Europe/Paris")).timestamp()
 
 
 @app.on_response
 async def after_request(request: Request, response):
-    end = datetime.now().timestamp()
+    end = datetime.now(tz=timezone("Europe/Paris")).timestamp()
     process = end - request.ctx.start
 
     app.ctx.requests.info(f"{request.headers.get('CF-Connecting-IP', request.client_ip)} - [{request.method}] {request.url} - {response.status} ({process * 1000:.2f}ms)")
