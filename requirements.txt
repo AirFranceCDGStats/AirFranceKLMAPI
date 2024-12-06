@@ -1,9 +1,10 @@
-python-dotenv
-aiohttp
-apscheduler
-sanic
+python-dotenv==1.0.1
+aiohttp==3.9.5
+apscheduler==3.10.4
+sanic==23.12.1
 git+https://github.com/PaulBayfield/sanic-ext
 git+https://github.com/AirFranceCDGStats/AirPy
-asyncpg
-hypercorn
-prometheus_client
+asyncpg==0.29.0
+hypercorn==0.14.4
+prometheus_client==0.16.0
+pytz===2024.2
