@@ -182,7 +182,7 @@ class Cache(Scheduler):
 
         try:
             async with self.pool.acquire() as connection:
-                date = await connection.fetchval("SELECT date FROM historique ORDER BY date DESC LIMIT 1")
+                date = await connection.fetchval("SELECT date FROM historique ORDER BY date ASC LIMIT 1")
 
             end = date  
             for _ in range(1, 8):
