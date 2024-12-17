@@ -20,6 +20,7 @@ from textwrap import dedent
 from asyncpg import create_pool
 from datetime import datetime
 from pytz import timezone
+from asyncio import sleep
 
 
 load_dotenv(dotenv_path=f".env")
@@ -91,6 +92,7 @@ openapi.exclude(bp=RouteWebsocket)
 @app.listener("before_server_start")
 async def setup_app(app: Sanic, loop):
     app.ctx.logs = Logger("logs")
+    app.ctx.api_requests = Logger("requests")
     app.ctx.requests = Logger("web")
     app.ctx.session = ClientSession()
 
@@ -98,7 +100,7 @@ async def setup_app(app: Sanic, loop):
     app.ctx.clients = []
     for key in environ.keys():
         if key.startswith("AIRFRANCEKLM_API_KEY_"):
-            app.ctx.clients.append(AirPyClient(environ.get(key), app.ctx.session))
+            app.ctx.clients.append(AirPyClient(environ.get(key), app.ctx.session, app.ctx.api_requests))
             app.ctx.logs.info(f"[ENV] Client : {key} chargé !")
 
     app.ctx.logs.info(f"{len(app.ctx.clients)} Clients chargés !")
@@ -133,6 +135,7 @@ async def setup_app(app: Sanic, loop):
     await app.ctx.cache.refreshFlights()
 
     if environ.get("HISTORICAL", "false").lower() == "true":
+        await sleep(5)
         await app.ctx.cache.historicalFlights()
 
 
