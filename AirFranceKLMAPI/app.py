@@ -93,7 +93,6 @@ openapi.exclude(bp=RouteWebsocket)
 async def setup_app(app: Sanic, loop):
     app.ctx.logs = Logger("logs")
     app.ctx.api_requests = Logger("requests")
-    app.ctx.requests = Logger("web")
     app.ctx.session = ClientSession()
 
     # Chargement des clients
@@ -160,7 +159,7 @@ async def after_request(request: Request, response):
     end = datetime.now(tz=timezone("Europe/Paris")).timestamp()
     process = end - request.ctx.start
 
-    app.ctx.requests.info(f"{request.headers.get('CF-Connecting-IP', request.client_ip)} - [{request.method}] {request.url} - {response.status} ({process * 1000:.2f}ms)")
+    print(f"{request.headers.get('CF-Connecting-IP', request.client_ip)} - [{request.method}] {request.url} - {response.status} ({process * 1000:.2f}ms)")
 
 
 if __name__ == "__main__":

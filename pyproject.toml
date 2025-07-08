@@ -1,0 +1,22 @@
+[project]
+name = "airfranceklmapi"
+version = "0.1.0"
+description = "AirFranceKLM API"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "aiohttp>=3.12.13",
+    "airpy",
+    "apscheduler>=3.11.0",
+    "asyncpg>=0.30.0",
+    "hypercorn>=0.17.3",
+    "prometheus-client>=0.22.1",
+    "python-dotenv>=1.1.1",
+    "pytz>=2025.2",
+    "sanic>=25.3.0",
+    "sanic-ext",
+]
+
+[tool.uv.sources]
+sanic-ext = { git = "https://github.com/PaulBayfield/sanic-ext" }
+airpy = { git = "https://github.com/AirFranceCDGStats/AirPy" }
